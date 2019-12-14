@@ -14,6 +14,8 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+
 /* get the notes */
 
 router.get('/', function (req, res) {
@@ -28,6 +30,25 @@ router.get('/notes', function (req, res) {
     });*/
 });
 
+router.get('/api/notes', function (req, res) {
+    console.log(req.body);
+
+    fs.readFile(__dirname + '/db/db.json', (err, data) => {
+        let notes = JSON.parse(data);
+        res.json(notes);
+    });
+
+    //res.json(path.join(__dirname + '/db/db.json'));
+    /*
+    readFileAsync('./../db/db.json', 'utf8').then(notes => {
+        console.log(notes);
+    });*/
+});
+
+function random(low, high) {
+    return Math.random() * (high - low) + low
+}
+
 router.post('/api/notes', (req, res) => {
     const newNote = req.body;
     console.log(req.body);
@@ -35,7 +56,37 @@ router.post('/api/notes', (req, res) => {
     fs.readFile(__dirname + '/db/db.json', (err, data) => {
         let notes = JSON.parse(data);
         let newNote = req.body;
+        newNote.id = Math.floor(random(0, 100));
         notes.push(newNote);
+        fs.writeFile(__dirname + '/db/db.json', JSON.stringify(notes), (err) => {
+            if (err) throw err;
+            console.log('note saved');
+        });
+    });
+    res.send('post sent');
+});
+
+router.delete('/api/notes/:id', (req, res) => {
+    const idNum = req.params.id;
+    console.log("Delete ID");
+    console.log(idNum);
+
+    fs.readFile(__dirname + '/db/db.json', (err, data) => {
+        let notes = JSON.parse(data);
+        var delIndex = 0;
+        for (var i = 0; i < notes.length; i++) {
+            if (notes[i].id == idNum) {
+                console.log("Delete element " + notes[i].id + " " + notes[i].title);
+                delIndex = i;
+                //delete notes[i];
+
+            }
+        }
+        notes.splice(notes.indexOf(delIndex), 1);
+
+        /*
+        */
+
         fs.writeFile(__dirname + '/db/db.json', JSON.stringify(notes), (err) => {
             if (err) throw err;
             console.log('note saved');
